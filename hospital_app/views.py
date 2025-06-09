@@ -413,3 +413,17 @@ def login_view(request):
 def logout_view(request):
     auth_logout(request)
     return redirect('login')
+
+def view_appointments(request):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT a.id, p.name, d.name, a.appointment_date, a.symptoms
+        FROM appointments a
+        LEFT JOIN patients p ON a.patient_id = p.id
+        LEFT JOIN doctors d ON a.doctor_id = d.id
+    """)
+    appointments = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return render(request, 'view_appointments.html', {'appointments': appointments})

@@ -5,7 +5,10 @@
   <title>Settings | Hospital Management System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <style>
+    html,body { scroll-behavior: smooth; }
     .mix-sidebar {
       background: linear-gradient(160deg,#818cf8 0%,#f472b6 40%,#facc15 70%,#34d399 100%);
     }
@@ -16,12 +19,14 @@
       transition: all 0.2s cubic-bezier(.4,0,.2,1);
       background: linear-gradient(120deg, #818cf8 0%, #f472b6 40%, #34d399 100%);
       box-shadow: 0 2px 12px 0 rgba(129,140,248,0.12);
+      outline: none;
     }
-    .sidebar-btn:hover, .sidebar-btn.active {
+    .sidebar-btn:hover, .sidebar-btn.active, .sidebar-btn:focus-visible {
       background: linear-gradient(90deg, #f472b6 10%, #818cf8 70%, #facc15 100%);
       color: #fff;
       scale: 1.05;
       box-shadow: 0 4px 24px 0 rgba(236,72,153,0.15);
+      outline: none;
     }
     .fadein { animation: fadein 1s ease;}
     @keyframes fadein {
@@ -32,6 +37,58 @@
       background: linear-gradient(110deg,rgba(255,255,255,0.18) 60%,rgba(236,72,153,0.08) 100%);
       box-shadow: 0 8px 32px 0 rgba(129,140,248,0.13);
       border: 1.5px solid rgba(129,140,248,0.09);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Ripple for Save/Back button micro-interaction */
+    .ripple-btn {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-btn 0.5s linear;
+      background-color: rgba(129,140,248,0.14);
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes ripple-btn {
+      to { transform: scale(2.3); opacity: 0; }
+    }
+    .setting-save-btn {
+      background: linear-gradient(90deg,#818cf8 0,#f472b6 100%);
+      transition: background 0.21s, box-shadow 0.21s, transform 0.16s;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+    }
+    .setting-save-btn:focus-visible, .setting-save-btn:hover {
+      background: linear-gradient(90deg,#f472b6 0,#818cf8 100%);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 24px 0 rgba(129,140,248,0.15);
+    }
+    .setting-save-btn:active {
+      filter: brightness(0.98);
+    }
+    .setting-save-btn .fa-save {
+      transition: transform 0.17s cubic-bezier(.4,0,.2,1);
+    }
+    .setting-save-btn:active .fa-save, .setting-save-btn:hover .fa-save {
+      transform: scale(1.12) rotate(-8deg);
+    }
+    .section-fade { opacity: 0; transition: opacity 0.95s cubic-bezier(.4,0,.2,1), transform 0.95s cubic-bezier(.4,0,.2,1);}
+    .section-fade.visible { opacity: 1; transform: none; }
+    @media (max-width: 900px) {
+      .sidebar-btn span { display: none; }
+      .sidebar-btn { justify-content: center; }
+    }
+    @media (max-width: 520px) {
+      .mix-sidebar { min-width: 54px !important; width: 54px !important;}
+      .sidebar-btn { padding: 0.7rem !important; font-size: 1rem !important;}
+      .sidebar-btn span { display: none; }
     }
   </style>
 </head>
@@ -39,55 +96,52 @@
   <!-- Sidebar with Mix Colors -->
   <aside class="mix-sidebar w-20 md:w-64 flex flex-col items-center md:items-stretch z-10 p-2 md:p-6 pt-6 pb-8 shadow-xl min-h-screen">
     <div class="flex flex-col items-center mb-8">
-      <img src="https://placehold.co/60x60?text=🏥" class="w-14 h-14 rounded-full border-4 border-white shadow-lg mb-2" alt="Hospital Logo" />
-      <h1 class="hidden md:block text-2xl font-bold drop-shadow text-white">LK Hospital</h1>
+      <img src="https://placehold.co/60x60?text=🏥" class="w-14 h-14 rounded-full border-4 border-white shadow-lg mb-2 animate__animated animate__pulse animate__infinite" alt="Hospital Logo" />
+      <h1 class="hidden md:block text-2xl font-bold drop-shadow text-white animate__animated animate__fadeInDown">LK Hospital</h1>
     </div>
     <nav class="flex flex-col gap-3 w-full">
-      <a href="{% url 'home' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">🏠</span>
+      <a href="{% url 'home' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-home"></i></span>
         <span class="hidden md:inline">Dashboard</span>
       </a>
-      <a href="{% url 'patients' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">🧑‍🤝‍🧑</span>
+      <a href="{% url 'patients' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-user-injured"></i></span>
         <span class="hidden md:inline">Patients</span>
       </a>
-      <a href="{% url 'doctors' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">👨‍⚕️</span>
+      <a href="{% url 'doctors' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-user-md"></i></span>
         <span class="hidden md:inline">Doctors</span>
       </a>
-      <a href="{% url 'appointments' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">📅</span>
+      <a href="{% url 'appointments' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-calendar-check"></i></span>
         <span class="hidden md:inline">Appointments</span>
       </a>
-      <a href="{% url 'billing' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">💳</span>
+      <a href="{% url 'billing' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-credit-card"></i></span>
         <span class="hidden md:inline">Billing</span>
       </a>
-      <a href="{% url 'settings' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition active flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">⚙️</span>
+      <a href="{% url 'settings' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition active flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-cog"></i></span>
         <span class="hidden md:inline">Settings</span>
       </a>
     </nav>
   </aside>
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col items-center justify-center py-10 fadein">
+  <main class="flex-1 flex flex-col items-center justify-center py-10 section-fade" id="settings-section">
     <div class="w-full max-w-2xl mx-auto px-4">
       <div class="flex flex-col items-center mb-8">
-        <div class="w-28 h-28 rounded-full bg-gradient-to-tr from-indigo-400 via-pink-400 to-fuchsia-700 shadow-xl mb-2 flex items-center justify-center">
-          <svg class="w-16 h-16 text-white opacity-80" fill="none" viewBox="0 0 48 48" stroke="currentColor">
-            <circle cx="24" cy="24" r="22" stroke="white" stroke-width="3" fill="none"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M24 30a10 10 0 100-20 10 10 0 000 20zm0 0v10" />
-          </svg>
+        <div class="w-28 h-28 rounded-full bg-gradient-to-tr from-indigo-400 via-pink-400 to-fuchsia-700 shadow-xl mb-2 flex items-center justify-center animate__animated animate__pulse animate__infinite">
+          <i class="fas fa-cogs text-white text-5xl"></i>
         </div>
-        <h2 class="text-3xl font-bold text-white mb-2 text-center tracking-tight">Settings</h2>
-        <p class="text-gray-300 text-center max-w-md">Update your profile, change your password, and personalize your experience.</p>
+        <h2 class="text-3xl font-bold text-white mb-2 text-center tracking-tight animate__animated animate__fadeInDown">Settings</h2>
+        <p class="text-gray-300 text-center max-w-md animate__animated animate__fadeIn">Update your profile, change your password, and personalize your experience.</p>
       </div>
-      <form method="post" class="setting-card rounded-2xl shadow-xl p-8 space-y-10 fadein">
+      <form method="post" class="setting-card rounded-2xl shadow-xl p-8 space-y-10 fadein animate__animated animate__fadeInUp">
         {% csrf_token %}
         <!-- User Profile Section -->
         <div>
           <h3 class="text-xl font-semibold text-indigo-200 mb-4 flex items-center gap-2">
-            <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
+            <i class="fas fa-user text-indigo-300 text-lg"></i>
             Profile
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -104,7 +158,7 @@
         <!-- Password Change Section -->
         <div>
           <h3 class="text-xl font-semibold text-pink-200 mb-4 flex items-center gap-2">
-            <svg class="w-6 h-6 text-pink-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <i class="fas fa-lock text-pink-300 text-lg"></i>
             Change Password
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -125,7 +179,7 @@
         <!-- Preferences Section -->
         <div>
           <h3 class="text-xl font-semibold text-fuchsia-200 mb-4 flex items-center gap-2">
-            <svg class="w-6 h-6 text-fuchsia-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 01.33 1.82l-1.89 3.32A1.65 1.65 0 0116.09 21H7.91a1.65 1.65 0 01-1.41-.86l-1.89-3.32a1.65 1.65 0 01.33-1.82l1.89-1.32a1.65 1.65 0 01.99-.28h7.12a1.65 1.65 0 01.99.28z"/></svg>
+            <i class="fas fa-sliders-h text-fuchsia-300 text-lg"></i>
             Preferences
           </h3>
           <div class="flex flex-col gap-4">
@@ -141,16 +195,48 @@
         </div>
         <!-- Save Button -->
         <div class="flex justify-end">
-          <button type="submit" class="bg-gradient-to-r from-indigo-600 via-pink-500 to-fuchsia-600 hover:from-indigo-700 hover:to-fuchsia-700 text-white px-8 py-2 rounded-xl font-semibold shadow transition">Save Changes</button>
+          <button type="submit" class="setting-save-btn text-white px-8 py-2 rounded-xl font-semibold shadow transition" tabindex="0">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
         </div>
       </form>
       <div class="mt-8 text-center">
-        <a href="{% url 'home' %}" class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white px-8 py-2 rounded-full font-bold shadow-md transition inline-flex items-center gap-2 group">
-          <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        <a href="{% url 'home' %}" class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white px-8 py-2 rounded-full font-bold shadow-md transition inline-flex items-center gap-2 group" tabindex="0">
+          <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
           Back to Dashboard
         </a>
       </div>
     </div>
   </main>
+  <script>
+    // Section fade-in on scroll
+    function fadeInOnScroll() {
+      const faders = document.querySelectorAll('.section-fade');
+      faders.forEach(fader => {
+        const rect = fader.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 60) {
+          fader.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', fadeInOnScroll);
+    window.addEventListener('DOMContentLoaded', fadeInOnScroll);
+
+    // Save Button ripple micro-interaction
+    document.querySelectorAll('.setting-save-btn, .bg-gradient-to-r').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-btn';
+        ripple.style.width = ripple.style.height = Math.max(btn.offsetWidth, btn.offsetHeight) + 'px';
+        ripple.style.left = (e.offsetX - btn.offsetWidth/2) + 'px';
+        ripple.style.top = (e.offsetY - btn.offsetHeight/2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 480);
+      });
+      btn.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" || e.key === " ") btn.click();
+      });
+    });
+  </script>
 </body>
 </html>

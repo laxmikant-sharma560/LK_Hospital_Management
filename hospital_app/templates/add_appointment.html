@@ -5,60 +5,149 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Add Appointment | Hospital Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <style>
+    html,body { scroll-behavior: smooth; }
     .gradient-card {
-      background: linear-gradient(115deg,rgba(236,72,153,.12) 0,rgba(99,102,241,0.10) 100%);
-      box-shadow: 0 8px 32px 0 rgba(139,92,246,.13);
-      border: 1.5px solid rgba(236,72,153,0.09);
+      background: linear-gradient(115deg,rgba(236,72,153,.13) 0,rgba(99,102,241,0.11) 100%);
+      box-shadow: 0 14px 48px 0 rgba(99,102,241,0.14), 0 2px 4px 0 rgba(236,72,153,0.08);
+      border: 2px solid rgba(129,140,248,0.09);
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple {
+      position: absolute;
+      top: -80px; left: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(236,72,153,0.10) 0%, transparent 70%);
+      animation: rippleMove 13s infinite linear alternate;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @keyframes rippleMove {
+      0% { transform: translate(0,0) scale(1);}
+      100% { transform: translate(60px, 60px) scale(1.08);}
+    }
+    .fadein { animation: fadein 1.07s;}
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(34px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .glass-navbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(14px);
+      background: rgba(34, 31, 81, 0.85);
+      box-shadow: 0 2px 16px 0 rgba(129,140,248,0.09);
+      border-radius: 0 0 1.3rem 1.3rem;
+      animation: fadein 0.8s;
     }
     .form-input:focus, .form-textarea:focus, .form-select:focus {
       outline: none;
       box-shadow: 0 0 0 2px #f472b6;
       border-color: #f472b6;
-      background: rgba(236,72,153,0.08);
+      background: rgba(236,72,153,0.09);
+      transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
     }
     .form-select:focus {
       box-shadow: 0 0 0 2px #818cf8;
       border-color: #818cf8;
-      background: rgba(129,140,248,0.08);
+      background: rgba(129,140,248,0.09);
     }
     .submit-btn {
       background: linear-gradient(90deg,#f472b6 0,#818cf8 100%);
+      transition: background 0.21s, box-shadow 0.21s, transform 0.16s;
+      position: relative;
+      overflow: hidden;
+      outline: none;
+      border: none;
+      cursor: pointer;
     }
-    .submit-btn:hover {
+    .submit-btn:focus-visible, .submit-btn:hover {
       background: linear-gradient(90deg,#818cf8 0,#f472b6 100%);
       transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 6px 24px 0 rgba(236,72,153,0.21);
+      box-shadow: 0 6px 24px 0 rgba(236,72,153,0.16);
+    }
+    .submit-btn:active {
+      filter: brightness(0.97);
+    }
+    .submit-btn .fa-plus {
+      margin-right: 0.65em;
+      transition: transform 0.17s cubic-bezier(.4,0,.2,1);
+    }
+    .submit-btn:active .fa-plus, .submit-btn:hover .fa-plus {
+      transform: scale(1.11) rotate(-10deg);
     }
     .cancel-btn {
       background: linear-gradient(90deg,#334155 0,#818cf8 100%);
+      transition: background 0.18s, transform 0.15s;
+      outline: none;
+      border: none;
+      cursor: pointer;
     }
-    .cancel-btn:hover {
+    .cancel-btn:focus-visible, .cancel-btn:hover {
       background: linear-gradient(90deg,#818cf8 0,#334155 100%);
       transform: translateY(-2px) scale(1.03);
     }
+    .cancel-btn:active {
+      filter: brightness(0.97);
+    }
+    /* Button ripple micro-interaction */
+    .submit-btn .ripple-btn, .cancel-btn .ripple-btn {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-btn 0.5s linear;
+      background-color: rgba(129,140,248,0.20);
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes ripple-btn {
+      to { transform: scale(2.3); opacity: 0; }
+    }
+    /* Animate sections on scroll */
+    .section-fade { opacity: 0; transition: opacity 0.9s cubic-bezier(.4,0,.2,1), transform 0.9s cubic-bezier(.4,0,.2,1);}
+    .section-fade.visible { opacity: 1; transform: none; }
+    /* Responsive tweaks */
+    @media (max-width: 640px) {
+      .gradient-card { padding: 1.3rem 0.7rem; }
+      .glass-navbar { border-radius: 0 0 0.8rem 0.8rem;}
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-bl from-fuchsia-800 via-gray-900 to-indigo-800 flex items-center justify-center">
-  <div class="gradient-card rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4">
-    <div class="flex flex-col items-center mb-6">
-      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-fuchsia-700 flex items-center justify-center mb-3 shadow-lg">
-        <svg class="w-8 h-8 text-white opacity-90" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-          <path d="M12 4v16m8-8H4"/>
-        </svg>
-      </div>
-      <h2 class="text-3xl font-bold text-white text-center tracking-tight">Add New Appointment</h2>
-      <p class="text-gray-300 mt-1 text-center text-sm">Schedule a new appointment for a patient and doctor in the hospital system.</p>
+<body class="min-h-screen bg-gradient-to-bl from-fuchsia-800 via-gray-900 to-indigo-800 flex items-center justify-center relative overflow-x-hidden">
+
+  <!-- Sticky Glass Navbar Branding -->
+  <nav class="glass-navbar w-full max-w-lg px-5 py-3 mx-auto flex items-center justify-between mb-6">
+    <div class="flex items-center gap-2">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsRbNptqhM0Xb7rXIlBjuq5nLYyx6Tv7fxWA&s" class="w-9 h-9 rounded-full border-2 border-white shadow" alt="Hospital Logo" />
+      <span class="text-lg font-bold text-white tracking-wide">LK Hospital</span>
     </div>
-    <form method="POST" autocomplete="off" class="space-y-5">
+    <a href="{% url 'home' %}" class="cancel-btn px-5 py-2 rounded-lg text-white font-semibold shadow flex items-center text-sm" tabindex="0">
+      <i class="fas fa-arrow-left mr-2"></i> Dashboard
+    </a>
+  </nav>
+
+  <div class="gradient-card rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4 relative z-10 fadein section-fade" id="add-appointment-section">
+    <div class="ripple"></div>
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-fuchsia-700 flex items-center justify-center mb-3 shadow-lg animate__animated animate__pulse animate__infinite">
+        <i class="fas fa-calendar-plus text-white text-3xl"></i>
+      </div>
+      <h2 class="text-3xl font-bold text-white text-center tracking-tight animate__animated animate__fadeInDown">Add New Appointment</h2>
+      <p class="text-gray-300 mt-1 text-center text-sm animate__animated animate__fadeIn">Schedule a new appointment for a patient and doctor in the hospital system.</p>
+    </div>
+    <form method="POST" autocomplete="off" class="space-y-5 animate__animated animate__fadeInUp">
       {% csrf_token %}
       <div>
         <label class="block text-white mb-1 font-medium" for="patient_name">Patient Name</label>
-        <input required type="text" id="patient_name" name="patient_name" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Enter patient name">
+        <input required type="text" id="patient_name" name="patient_name" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition placeholder-gray-300" placeholder="Enter patient name">
       </div>
       <div>
         <label class="block text-white mb-1 font-medium" for="doctor_name">Doctor Name</label>
-        <input required type="text" id="doctor_name" name="doctor_name" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Enter doctor name">
+        <input required type="text" id="doctor_name" name="doctor_name" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition placeholder-gray-300" placeholder="Enter doctor name">
       </div>
       <div>
         <label class="block text-white mb-1 font-medium" for="appointment_date">Appointment Date</label>
@@ -66,13 +155,47 @@
       </div>
       <div>
         <label class="block text-white mb-1 font-medium" for="symptoms">Symptoms</label>
-        <textarea id="symptoms" name="symptoms" rows="2" class="form-textarea w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Describe symptoms"></textarea>
+        <textarea id="symptoms" name="symptoms" rows="2" class="form-textarea w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition placeholder-gray-300" placeholder="Describe symptoms"></textarea>
       </div>
       <div class="flex gap-3 justify-center mt-6">
-        <button type="submit" class="submit-btn text-white px-8 py-2 rounded-xl font-semibold shadow transition">Add Appointment</button>
-        <a href="{% url 'add_appointment' %}" class="cancel-btn px-8 py-2 rounded-xl text-white font-semibold shadow transition text-center">Cancel</a>
+        <button type="submit" class="submit-btn text-white px-8 py-2 rounded-xl font-semibold shadow flex items-center justify-center text-base transition" tabindex="0">
+          <i class="fas fa-plus"></i> Add Appointment
+        </button>
+        <a href="{% url 'appointments' %}" class="cancel-btn px-8 py-2 rounded-xl text-white font-semibold shadow flex items-center justify-center text-base transition text-center" tabindex="0">
+          <i class="fas fa-times mr-1"></i> Cancel
+        </a>
       </div>
     </form>
   </div>
+  <script>
+    // Section fade-in on scroll
+    function fadeInOnScroll() {
+      const faders = document.querySelectorAll('.section-fade');
+      faders.forEach(fader => {
+        const rect = fader.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 60) {
+          fader.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', fadeInOnScroll);
+    window.addEventListener('DOMContentLoaded', fadeInOnScroll);
+
+    // Button ripple micro-interaction
+    document.querySelectorAll('.submit-btn, .cancel-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-btn';
+        ripple.style.width = ripple.style.height = Math.max(btn.offsetWidth, btn.offsetHeight) + 'px';
+        ripple.style.left = (e.offsetX - btn.offsetWidth/2) + 'px';
+        ripple.style.top = (e.offsetY - btn.offsetHeight/2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 480);
+      });
+      btn.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" || e.key === " ") btn.click();
+      });
+    });
+  </script>
 </body>
 </html>

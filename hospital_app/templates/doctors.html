@@ -5,7 +5,10 @@
   <title>Doctors Management | Hospital Management System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <style>
+    html,body { scroll-behavior: smooth; }
     .mix-sidebar {
       background: linear-gradient(160deg,#818cf8 0%,#f472b6 40%,#facc15 70%,#34d399 100%);
     }
@@ -16,29 +19,42 @@
       transition: all 0.2s cubic-bezier(.4,0,.2,1);
       background: linear-gradient(120deg, #818cf8 0%, #f472b6 40%, #34d399 100%);
       box-shadow: 0 2px 12px 0 rgba(129,140,248,0.12);
+      outline: none;
     }
-    .sidebar-btn:hover, .sidebar-btn.active {
+    .sidebar-btn:hover, .sidebar-btn.active, .sidebar-btn:focus-visible {
       background: linear-gradient(90deg, #f472b6 10%, #818cf8 70%, #facc15 100%);
       color: #fff;
       scale: 1.05;
       box-shadow: 0 4px 24px 0 rgba(236,72,153,0.15);
+      outline: none;
     }
     .action-btn {
-      transition: all 0.2s;
+      transition: all 0.19s cubic-bezier(.4,0,.2,1);
+      outline: none;
+      border: none;
+      position: relative;
+      overflow: hidden;
     }
-    .action-btn:hover {
-      transform: scale(1.07) translateY(-2px);
-      box-shadow: 0 6px 18px 0 rgba(236,72,153,0.13);
-      filter: brightness(1.08);
+    .action-btn:hover, .action-btn:focus-visible {
+      transform: scale(1.09) translateY(-2px);
+      box-shadow: 0 6px 20px 0 rgba(236,72,153,0.16);
+      filter: brightness(1.13);
+      outline: none;
+    }
+    .action-btn:active {
+      filter: brightness(0.97);
+      transform: scale(0.97) translateY(0);
     }
     .row-hover {
-      transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+      transition: background 0.19s, box-shadow 0.19s, transform 0.19s;
       cursor: pointer;
+      outline: none;
     }
-    .row-hover:hover {
+    .row-hover:hover, .row-hover:focus-visible {
       background: linear-gradient(90deg,rgba(236,72,153,0.16) 0,rgba(129,140,248,0.10) 100%);
       box-shadow: 0 8px 32px 0 rgba(139,92,246,.13);
-      transform: translateY(-2px) scale(1.01);
+      transform: translateY(-2px) scale(1.012);
+      outline: none;
     }
     .row-active {
       background: linear-gradient(90deg,rgba(129,140,248,0.16) 0,rgba(236,72,153,0.10) 100%);
@@ -59,8 +75,9 @@
       position: relative;
       overflow: hidden;
       border: none;
+      outline: none;
     }
-    .back-btn:hover, .back-btn:focus {
+    .back-btn:hover, .back-btn:focus-visible {
       background: linear-gradient(90deg,#f472b6 0,#34d399 100%);
       color: #fff;
       box-shadow: 0 6px 24px 0 rgba(236,72,153,0.22);
@@ -72,117 +89,128 @@
       box-shadow: 0 2px 8px 0 rgba(129,140,248,0.13);
       transform: scale(0.98);
     }
+    .section-fade { opacity: 0; transition: opacity 0.95s cubic-bezier(.4,0,.2,1), transform 0.95s cubic-bezier(.4,0,.2,1);}
+    .section-fade.visible { opacity: 1; transform: none; }
+    @media (max-width: 900px) {
+      .sidebar-btn span { display: none; }
+      .sidebar-btn { justify-content: center; }
+    }
+    @media (max-width: 520px) {
+      .mix-sidebar { min-width: 54px !important; width: 54px !important;}
+      .sidebar-btn { padding: 0.7rem !important; font-size: 1rem !important;}
+      .sidebar-btn span { display: none; }
+    }
   </style>
-  <script>
-    // Optional: row click highlighting for better UX
-    document.addEventListener("DOMContentLoaded", () => {
-      let activeRow = null;
-      document.querySelectorAll(".row-hover").forEach(row => {
-        row.addEventListener("click", function() {
-          if(activeRow) activeRow.classList.remove("row-active");
-          this.classList.add("row-active");
-          activeRow = this;
-        });
-      });
-      // Prevent form submit from unselecting row highlight
-      document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("click", e => e.stopPropagation());
-      });
-    });
-  </script>
 </head>
 <body class="min-h-screen bg-gradient-to-bl from-indigo-800 via-gray-900 to-fuchsia-800 flex">
   <!-- Sidebar with Mix Colors -->
   <aside class="mix-sidebar w-20 md:w-64 flex flex-col items-center md:items-stretch z-10 p-2 md:p-6 pt-6 pb-8 shadow-xl min-h-screen">
     <div class="flex flex-col items-center mb-8">
-      <img src="https://placehold.co/60x60?text=🏥" class="w-14 h-14 rounded-full border-4 border-white shadow-lg mb-2" alt="Hospital Logo" />
-      <h1 class="hidden md:block text-2xl font-bold drop-shadow text-white">LK Hospital</h1>
+      <img src="https://placehold.co/60x60?text=🏥" class="w-14 h-14 rounded-full border-4 border-white shadow-lg mb-2 animate__animated animate__pulse animate__infinite" alt="Hospital Logo" />
+      <h1 class="hidden md:block text-2xl font-bold drop-shadow text-white animate__animated animate__fadeInDown">LK Hospital</h1>
     </div>
     <nav class="flex flex-col gap-3 w-full">
-      <a href="{% url 'home' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">🏠</span>
+      <a href="{% url 'home' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-home"></i></span>
         <span class="hidden md:inline">Dashboard</span>
       </a>
-      <a href="{% url 'patients' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">🧑‍🤝‍🧑</span>
+      <a href="{% url 'patients' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-user-injured"></i></span>
         <span class="hidden md:inline">Patients</span>
       </a>
-      <a href="{% url 'doctors' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition active flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">👨‍⚕️</span>
+      <a href="{% url 'doctors' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition active flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-user-md"></i></span>
         <span class="hidden md:inline">Doctors</span>
       </a>
-      <a href="{% url 'appointments' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">📅</span>
+      <a href="{% url 'appointments' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-calendar-check"></i></span>
         <span class="hidden md:inline">Appointments</span>
       </a>
-      <a href="{% url 'billing' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">💳</span>
+      <a href="{% url 'billing' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-credit-card"></i></span>
         <span class="hidden md:inline">Billing</span>
       </a>
-      <a href="{% url 'settings' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
-        <span class="text-xl">⚙️</span>
+      <a href="{% url 'settings' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start" tabindex="0">
+        <span class="text-xl"><i class="fas fa-cog"></i></span>
         <span class="hidden md:inline">Settings</span>
       </a>
     </nav>
   </aside>
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col py-10 px-2 md:px-6 bg-gradient-to-tr from-slate-900 via-gray-900 to-indigo-900 min-h-screen">
+  <main class="flex-1 flex flex-col py-10 px-2 md:px-6 bg-gradient-to-tr from-slate-900 via-gray-900 to-indigo-900 min-h-screen section-fade" id="doctors-section">
     <!-- Header Section -->
-    <section class="w-full max-w-5xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <section class="w-full max-w-5xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate__animated animate__fadeInDown">
       <div class="flex items-center gap-4">
-        <div class="bg-indigo-500/20 rounded-full p-3 shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21h8m-4-4v4m0-16v4m0 4a4 4 0 100-8 4 4 0 000 8zm0 0v4m8 0h-8"/>
-          </svg>
+        <div class="bg-indigo-500/20 rounded-full p-3 shadow-lg animate__animated animate__pulse animate__infinite">
+          <i class="fas fa-user-md h-8 w-8 text-indigo-400 text-3xl"></i>
         </div>
         <div>
           <h2 class="text-3xl font-bold text-white">Doctors Management</h2>
           <p class="text-gray-300 mt-1 text-sm">Manage, update and view all doctors in the hospital system.</p>
         </div>
       </div>
-      <a href="{% url 'add_doctor' %}" class="bg-gradient-to-r from-indigo-500 via-pink-400 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-6 py-2 rounded-xl font-bold shadow-md transition action-btn flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+      <a href="{% url 'add_doctor' %}" class="bg-gradient-to-r from-indigo-500 via-pink-400 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-6 py-2 rounded-xl font-bold shadow-md transition action-btn flex items-center gap-2 focus:outline-none" tabindex="0">
+        <i class="fas fa-plus"></i>
         Add Doctor
       </a>
     </section>
     <!-- Card Table Section -->
     <section class="w-full max-w-5xl mx-auto">
-      <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl overflow-x-auto p-4 md:p-8">
-        <table class="min-w-full text-left text-white table-fixed">
+      <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl overflow-x-auto p-4 md:p-8 animate__animated animate__fadeInUp">
+        <table class="min-w-full table-auto text-left text-white">
+          <colgroup>
+            <col style="width: 60px;">
+            <col style="width: 19%;">
+            <col style="width: 19%;">
+            <col style="width: 12%;">
+            <col style="width: 16%;">
+            <col style="width: 18%;">
+            <col style="width: 140px;">
+          </colgroup>
           <thead>
             <tr>
-              <th class="py-3 px-4 w-12">ID</th>
-              <th class="py-3 px-4 w-1/5">Name</th>
-              <th class="py-3 px-4 w-1/5">Specialty</th>
-              <th class="py-3 px-4 w-1/6">Gender</th>
-              <th class="py-3 px-4 w-1/6">Contact</th>
-              <th class="py-3 px-4 w-1/4">Email</th>
-              <th class="py-3 px-4 w-40">Actions</th>
+              <th class="py-3 px-4">ID</th>
+              <th class="py-3 px-4">Name</th>
+              <th class="py-3 px-4">Specialty</th>
+              <th class="py-3 px-4">Gender</th>
+              <th class="py-3 px-4">Contact</th>
+              <th class="py-3 px-4">Email</th>
+              <th class="py-3 px-4">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for doctor in doctors %}
-            <tr class="row-hover rounded-xl">
-              <td class="py-2 px-4 font-bold text-indigo-300">{{ doctor.0 }}</td>
-              <td class="py-2 px-4 flex items-center gap-3">
-                <span class="inline-block w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-400 via-pink-400 to-fuchsia-700 text-white flex items-center justify-center font-semibold shadow-inner">
-                  {{ doctor.1|slice:":1"|upper }}
-                </span>
-                <span class="truncate">{{ doctor.1 }}</span>
+            <tr class="row-hover rounded-xl transition-all duration-200 focus-within:ring-2 focus-within:ring-indigo-400" tabindex="0">
+              <td class="py-2 px-4 font-bold text-indigo-300 align-middle">{{ doctor.0 }}</td>
+              <td class="py-2 px-4 align-middle">
+                <div class="flex items-center gap-3">
+                  <span class="inline-block w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-400 via-pink-400 to-fuchsia-700 text-white flex items-center justify-center font-semibold shadow-inner">
+                    {{ doctor.1|slice:":1"|upper }}
+                  </span>
+                  <span class="truncate block max-w-[120px]">{{ doctor.1 }}</span>
+                </div>
               </td>
-              <td class="py-2 px-4">{{ doctor.2 }}</td>
-              <td class="py-2 px-4">
+              <td class="py-2 px-4 align-middle">{{ doctor.2 }}</td>
+              <td class="py-2 px-4 align-middle">
                 <span class="inline-block px-3 py-1 rounded-full font-medium bg-indigo-700/30 text-indigo-100">
                   {{ doctor.3 }}
                 </span>
               </td>
-              <td class="py-2 px-4">{{ doctor.4 }}</td>
-              <td class="py-2 px-4 truncate">{{ doctor.5 }}</td>
-              <td class="py-2 px-4 flex gap-2">
-                <a href="{% url 'update_doctor' doctor.0 %}" class="action-btn bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition">Edit</a>
+              <td class="py-2 px-4 align-middle">{{ doctor.4 }}</td>
+              <td class="py-2 px-4 align-middle truncate">
+                <span class="block max-w-[180px]" title="{{ doctor.5 }}">{{ doctor.5 }}</span>
+              </td>
+              <td class="py-2 px-4 flex gap-2 align-middle">
+                <a href="{% url 'update_doctor' doctor.0 %}" class="action-btn bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition flex items-center gap-1" tabindex="0">
+                  <i class="fas fa-edit"></i>
+                  Edit
+                </a>
                 <form method="post" action="{% url 'delete_doctor' doctor.0 %}" onsubmit="return confirm('Are you sure you want to delete this doctor?');" style="display:inline;">
                   {% csrf_token %}
-                  <button type="submit" class="action-btn bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:from-pink-700 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition">Delete</button>
+                  <button type="submit" class="action-btn bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:from-pink-700 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition flex items-center gap-1" tabindex="0">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                  </button>
                 </form>
               </td>
             </tr>
@@ -195,12 +223,74 @@
         </table>
       </div>
       <div class="mt-10 flex justify-center">
-        <a href="{% url 'home' %}" class="back-btn group">
-          <svg class="w-5 h-5 mr-2 -ml-1 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+        <a href="{% url 'home' %}" class="back-btn group" tabindex="0">
+          <i class="fas fa-arrow-left mr-2 transition-transform group-hover:-translate-x-1"></i>
           Back to Dashboard
         </a>
       </div>
     </section>
   </main>
+  <script>
+    // Section fade-in on scroll
+    function fadeInOnScroll() {
+      const faders = document.querySelectorAll('.section-fade');
+      faders.forEach(fader => {
+        const rect = fader.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 60) {
+          fader.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', fadeInOnScroll);
+    window.addEventListener('DOMContentLoaded', fadeInOnScroll);
+
+    // Row click highlighting, row keyboard navigation
+    document.addEventListener("DOMContentLoaded", () => {
+      let activeRow = null;
+      document.querySelectorAll(".row-hover").forEach(row => {
+        row.addEventListener("click", function() {
+          if(activeRow) activeRow.classList.remove("row-active");
+          this.classList.add("row-active");
+          activeRow = this;
+        });
+        row.addEventListener("keydown", function(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            if(activeRow) activeRow.classList.remove("row-active");
+            row.classList.add("row-active");
+            activeRow = row;
+          }
+        });
+      });
+      document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("click", e => e.stopPropagation());
+      });
+    });
+
+    // Button ripple micro-interaction
+    document.querySelectorAll('.action-btn, .sidebar-btn, .back-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.style.position = 'absolute';
+        ripple.style.pointerEvents = 'none';
+        ripple.style.borderRadius = '50%';
+        ripple.style.transform = 'scale(0)';
+        ripple.style.background = 'rgba(129,140,248,0.18)';
+        ripple.style.width = ripple.style.height = Math.max(btn.offsetWidth, btn.offsetHeight) + 'px';
+        ripple.style.left = (e.offsetX - btn.offsetWidth/2) + 'px';
+        ripple.style.top = (e.offsetY - btn.offsetHeight/2) + 'px';
+        ripple.style.opacity = "0.5";
+        ripple.style.transition = "transform 0.55s cubic-bezier(.4,0,.2,1), opacity 0.55s";
+        btn.appendChild(ripple);
+        setTimeout(() => {
+          ripple.style.transform = "scale(2.3)";
+          ripple.style.opacity = "0";
+        }, 10);
+        setTimeout(() => ripple.remove(), 600);
+      });
+      btn.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" || e.key === " ") btn.click();
+      });
+    });
+  </script>
 </body>
 </html>

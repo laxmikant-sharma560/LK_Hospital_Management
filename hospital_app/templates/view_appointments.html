@@ -2,52 +2,204 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Appointments</title>
+  <title>Appointments | Hospital Management System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+  <style>
+    html, body { scroll-behavior: smooth; }
+    .glass-card {
+      background: linear-gradient(120deg,rgba(236,72,153,0.10) 0, rgba(129,140,248,0.11) 100%);
+      box-shadow: 0 8px 32px 0 rgba(139,92,246,0.15), 0 2px 8px 0 rgba(236,72,153,0.07);
+      border: 2px solid rgba(129,140,248,0.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple {
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(129,140,248,0.09) 0%, transparent 70%);
+      animation: rippleMove 12s infinite linear alternate;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @keyframes rippleMove {
+      0% { transform: translate(0,0) scale(1);}
+      100% { transform: translate(60px, 60px) scale(1.08);}
+    }
+    .fadein { animation: fadein 1s;}
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(30px);}
+      to { opacity: 1; transform: none;}
+    }
+    .action-btn {
+      transition: all 0.18s;
+      outline: none;
+      border: none;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+    }
+    .action-btn:focus-visible, .action-btn:hover {
+      filter: brightness(1.11);
+      transform: translateY(-2px) scale(1.07);
+      box-shadow: 0 4px 18px 0 rgba(236,72,153,0.14);
+      outline: none;
+    }
+    .action-btn .fa { transition: transform 0.16s cubic-bezier(.4,0,.2,1);}
+    .action-btn:active .fa, .action-btn:hover .fa {
+      transform: scale(1.12) rotate(-8deg);
+    }
+    .add-btn {
+      background: linear-gradient(90deg,#f472b6 0,#818cf8 100%);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 1rem;
+      padding: 0.65rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 16px 0 rgba(129,140,248,0.09);
+      transition: all 0.19s cubic-bezier(.4,0,.2,1);
+      position: relative;
+      overflow: hidden;
+      outline: none;
+    }
+    .add-btn:focus-visible, .add-btn:hover {
+      background: linear-gradient(90deg,#818cf8 0,#f472b6 100%);
+      transform: scale(1.06) translateY(-2px);
+      box-shadow: 0 6px 24px 0 rgba(236,72,153,0.18);
+      outline: none;
+    }
+    .add-btn .fa-plus { transition: transform 0.17s cubic-bezier(.4,0,.2,1);}
+    .add-btn:active .fa-plus, .add-btn:hover .fa-plus { transform: scale(1.18) rotate(-8deg);}
+    /* Button ripple micro-interaction */
+    .action-btn .ripple-btn, .add-btn .ripple-btn {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-btn 0.5s linear;
+      background-color: rgba(236,72,153,0.13);
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes ripple-btn {
+      to { transform: scale(2.3); opacity: 0; }
+    }
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(13px);
+      background: rgba(30,41,59,0.93);
+      transition: box-shadow 0.3s;
+    }
+    .table-row-animate {
+      animation: fadein 0.7s;
+    }
+    @media (max-width: 600px) {
+      .glass-card { padding: 1.1rem 0.3rem;}
+      .add-btn { padding: 0.6rem 1.2rem; font-size: 1rem;}
+      .table-responsive { font-size: 0.93rem;}
+      th, td { padding-left: 0.5rem !important; padding-right: 0.5rem !important;}
+    }
+    .table-responsive {
+      overflow-x: auto;
+      padding-bottom: 1.5rem;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <div class="container mx-auto p-8">
-    <div class="flex justify-between mb-6">
-      <h1 class="text-3xl font-bold">Appointments</h1>
-      <a href="{% url 'add_appointment' %}" class="bg-fuchsia-600 hover:bg-fuchsia-700 px-4 py-2 rounded">+ Add</a>
-    </div>
-    <table class="min-w-full bg-gray-800 rounded shadow overflow-hidden">
-      <thead>
-        <tr>
-          <th class="py-2 px-4">ID</th>
-          <th class="py-2 px-4">Patient</th>
-          <th class="py-2 px-4">Doctor</th>
-          <th class="py-2 px-4">Date</th>
-          <th class="py-2 px-4">Symptoms</th>
-          <th class="py-2 px-4">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for appointment in appointments %}
-        <tr class="border-b border-gray-700 hover:bg-gray-700">
-          <td class="py-2 px-4">{{ appointment.0 }}</td>
-          <td class="py-2 px-4">{{ appointment.1 }}</td>
-          <td class="py-2 px-4">{{ appointment.2 }}</td>
-          <td class="py-2 px-4">{{ appointment.3 }}</td>
-          <td class="py-2 px-4">{{ appointment.4|truncatechars:30 }}</td>
-          <td class="py-2 px-4 flex gap-2">
-            <a href="{% url 'update_appointment' appointment.0 %}" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded">Edit</a>
-            <form method="post" action="{% url 'delete_appointment' appointment.0 %}" onsubmit="return confirm('Delete this appointment?');">
-              {% csrf_token %}
-              <button type="submit" class="bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="py-8 text-center text-gray-400">No appointments found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="mt-4">
-      <a href="{% url 'home' %}" class="text-blue-300 hover:underline">&larr; Back to Dashboard</a>
+<body class="bg-gradient-to-br from-indigo-900 via-gray-900 to-fuchsia-800 min-h-screen flex flex-col fadein animate__animated animate__fadeInDown">
+  <div class="container mx-auto px-2 py-10 flex-1 flex flex-col items-center justify-start">
+    <div class="w-full max-w-5xl">
+      <!-- Header with icon and Add button -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-400 via-pink-400 to-fuchsia-700 flex items-center justify-center shadow-lg animate__animated animate__pulse animate__infinite">
+            <i class="fas fa-calendar-check text-white text-2xl"></i>
+          </div>
+          <h1 class="text-3xl font-bold text-white tracking-tight">Appointments</h1>
+        </div>
+        <a href="{% url 'add_appointment' %}" class="add-btn group" tabindex="0">
+          <i class="fas fa-plus"></i>
+          Add Appointment
+        </a>
+      </div>
+      <!-- Glass Card Table -->
+      <div class="glass-card rounded-2xl shadow-2xl overflow-x-auto p-2 md:p-6 table-responsive">
+        <table class="min-w-full table-auto text-left text-white">
+          <thead class="sticky-header">
+            <tr>
+              <th class="py-3 px-4">ID</th>
+              <th class="py-3 px-4">Patient</th>
+              <th class="py-3 px-4">Doctor</th>
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Symptoms</th>
+              <th class="py-3 px-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for appointment in appointments %}
+            <tr class="border-b border-gray-700 hover:bg-gray-800/40 table-row-animate">
+              <td class="py-2 px-4 font-bold text-fuchsia-300">{{ appointment.0 }}</td>
+              <td class="py-2 px-4">{{ appointment.1 }}</td>
+              <td class="py-2 px-4">{{ appointment.2 }}</td>
+              <td class="py-2 px-4">
+                <span class="bg-indigo-800/40 px-2 py-1 rounded text-indigo-100 font-semibold">{{ appointment.3 }}</span>
+              </td>
+              <td class="py-2 px-4">
+                <span class="truncate block max-w-[180px]" title="{{ appointment.4 }}">{{ appointment.4|truncatechars:30 }}</span>
+              </td>
+              <td class="py-2 px-4 flex gap-2">
+                <a href="{% url 'update_appointment' appointment.0 %}" class="action-btn bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition flex items-center gap-1" tabindex="0">
+                  <i class="fas fa-edit"></i>
+                  Edit
+                </a>
+                <form method="post" action="{% url 'delete_appointment' appointment.0 %}" onsubmit="return confirm('Delete this appointment?');" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="action-btn bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:from-pink-700 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition flex items-center gap-1" tabindex="0">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="py-8 text-center text-gray-300">No appointments found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-8 flex justify-center">
+        <a href="{% url 'home' %}" class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-fuchsia-600 hover:to-indigo-600 text-white px-7 py-2 rounded-full font-bold shadow-md transition inline-flex items-center gap-2 group" tabindex="0">
+          <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+          Back to Dashboard
+        </a>
+      </div>
     </div>
   </div>
+  <script>
+    // Button ripple micro-interaction
+    document.querySelectorAll('.action-btn, .add-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-btn';
+        ripple.style.width = ripple.style.height = Math.max(btn.offsetWidth, btn.offsetHeight) + 'px';
+        ripple.style.left = (e.offsetX - btn.offsetWidth/2) + 'px';
+        ripple.style.top = (e.offsetY - btn.offsetHeight/2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 480);
+      });
+      btn.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" || e.key === " ") btn.click();
+      });
+    });
+  </script>
 </body>
 </html>

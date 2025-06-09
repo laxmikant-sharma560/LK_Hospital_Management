@@ -5,28 +5,29 @@
   <title>About | Hospital Management System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <style>
+    html,body { scroll-behavior: smooth; }
     .gradient-card {
-      background: linear-gradient(120deg,rgba(99,102,241,0.16) 0,rgba(236,72,153,.13) 100%);
-      box-shadow: 0 12px 40px 0 rgba(99,102,241,0.20), 0 2px 4px 0 rgba(236,72,153,0.08);
+      background: linear-gradient(120deg,rgba(99,102,241,0.13) 0,rgba(236,72,153,.11) 100%);
+      box-shadow: 0 14px 48px 0 rgba(99,102,241,0.16), 0 2px 4px 0 rgba(236,72,153,0.07);
       border: 2px solid rgba(129,140,248,0.10);
       position: relative;
       overflow: hidden;
     }
     .ripple {
       position: absolute;
-      top: -60px;
-      left: -60px;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 70%);
-      animation: rippleMove 14s infinite linear alternate;
+      top: -100px; left: -100px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(236,72,153,0.09) 0%, transparent 80%);
+      animation: rippleMove 18s infinite linear alternate;
       z-index: 0;
       pointer-events: none;
     }
     @keyframes rippleMove {
       0% { transform: translate(0,0) scale(1);}
-      100% { transform: translate(60px, 60px) scale(1.1);}
+      100% { transform: translate(80px, 80px) scale(1.11);}
     }
     .heartbeat {
       animation: heartbeat 1.3s infinite;
@@ -42,18 +43,9 @@
       80% { transform: scale(1);}
       90% { transform: scale(1.09);}
     }
-    .fadein {
-      animation: fadein 1.2s;
-    }
+    .fadein { animation: fadein 1.05s;}
     @keyframes fadein {
-      from { opacity: 0; transform: translateY(32px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-    .slideup {
-      animation: slideup 1.5s cubic-bezier(.5,1.5,.6,1) 0.2s both;
-    }
-    @keyframes slideup {
-      from { opacity: 0; transform: translateY(54px);}
+      from { opacity: 0; transform: translateY(34px);}
       to { opacity: 1; transform: translateY(0);}
     }
     .section-divider {
@@ -70,57 +62,128 @@
         url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80');
       background-size: cover;
       background-position: center;
-      opacity: 0.13;
+      opacity: 0.10;
       z-index: 0;
       position: absolute;
       inset: 0;
       border-radius: 1.5rem;
       pointer-events: none;
     }
+    .btn-cta {
+      background: linear-gradient(90deg,#818cf8 10%, #f472b6 70%, #facc15 100%);
+      color: #fff; font-weight: 600;
+      border-radius: 0.6rem;
+      box-shadow: 0 2px 16px 0 rgba(129,140,248,0.09);
+      padding: 0.65rem 2.2rem;
+      font-size: 1.15rem;
+      transition: background 0.22s, box-shadow 0.22s, transform 0.18s;
+      outline: none;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-cta:focus-visible, .btn-cta:hover {
+      background: linear-gradient(90deg, #f472b6 10%, #818cf8 70%, #34d399 100%);
+      box-shadow: 0 4px 24px 0 rgba(236,72,153,0.16);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .btn-cta:active {
+      filter: brightness(0.96);
+    }
+    .btn-cta .fa-arrow-left {
+      margin-right: 0.7em;
+      transition: transform 0.18s cubic-bezier(.4,0,.2,1);
+    }
+    .btn-cta:active .fa-arrow-left, .btn-cta:hover .fa-arrow-left {
+      transform: translateX(-3px) scale(1.13);
+    }
+    /* Micro-interaction ripple for CTA */
+    .btn-cta .ripple-cta {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-cta 0.5s linear;
+      background-color: rgba(129,140,248,0.21);
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes ripple-cta {
+      to { transform: scale(2.3); opacity: 0; }
+    }
+    .sticky-navbar {
+      top: 0;
+      position: sticky;
+      z-index: 40;
+      background: rgba(31,41,55,0.82);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 12px 0 rgba(129,140,248,0.09);
+      border-radius: 0 0 1.2rem 1.2rem;
+      animation: fadein 0.8s;
+    }
+    /* Animate sections on scroll */
+    .section-fade { opacity: 0; transition: opacity 0.9s cubic-bezier(.4,0,.2,1), transform 0.9s cubic-bezier(.4,0,.2,1);}
+    .section-fade.visible { opacity: 1; transform: none; }
+    /* Responsive tweaks */
+    @media (max-width: 640px) {
+      .gradient-card { padding: 1.5rem 0.5rem; }
+      .hospital-bg { border-radius: 0.7rem; }
+      .btn-cta { font-size: 1rem; padding: 0.6rem 1.1rem;}
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-indigo-900 via-gray-900 to-fuchsia-800 flex items-center justify-center relative overflow-x-hidden">
+
+  <!-- Sticky Navbar Branding -->
+  <nav class="sticky-navbar w-full max-w-3xl px-6 py-2 mx-auto flex items-center justify-between mb-5">
+    <div class="flex items-center gap-2">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsRbNptqhM0Xb7rXIlBjuq5nLYyx6Tv7fxWA&s" class="w-9 h-9 rounded-full border-2 border-white shadow" alt="Hospital Logo" />
+      <span class="text-lg font-bold text-white tracking-wide">LK Hospital</span>
+    </div>
+    <a href="{% url 'home' %}" class="btn-cta flex items-center" id="back-to-dashboard" tabindex="0">
+      <i class="fas fa-arrow-left"></i> Dashboard
+    </a>
+  </nav>
+
   <div class="gradient-card rounded-2xl shadow-2xl p-8 w-full max-w-3xl mx-4 relative z-10 fadein">
     <div class="ripple"></div>
     <div class="hospital-bg"></div>
-    <!-- Hospital style heading -->
+    <!-- Heading -->
     <div class="flex flex-col md:flex-row items-center md:items-end gap-6 mb-8 relative z-10">
       <div class="flex flex-col items-center md:items-start grow">
-        <!-- Heartbeat Hospital Icon -->
         <div class="w-20 h-20 bg-fuchsia-600/20 rounded-full flex items-center justify-center shadow-xl mb-2">
           <svg class="w-12 h-12 text-fuchsia-400 heartbeat" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 48 48">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 26c-2-7.5 6-15 16-15s18 7.5 16 15c-3 9-16 15-16 15S11 35 8 26z"/>
             <polyline stroke-linecap="round" stroke-linejoin="round" points="14,25 20,25 23,18 26,32 29,27 34,27"/>
           </svg>
         </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-white text-center md:text-left tracking-tight mb-1 slideup">About Hospital Management System</h2>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white text-center md:text-left tracking-tight mb-1 animate__animated animate__fadeInDown">About Hospital Management System</h2>
         <div class="section-divider"></div>
       </div>
-      <!-- Profile image -->
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsRbNptqhM0Xb7rXIlBjuq5nLYyx6Tv7fxWA&s"
            alt="Laxmikant Sharma"
-           class="w-24 h-24 rounded-xl border-4 border-indigo-400 shadow-xl object-cover ring-4 ring-fuchsia-400/40 fadein"
+           class="w-24 h-24 rounded-xl border-4 border-indigo-400 shadow-xl object-cover ring-4 ring-fuchsia-400/40 fadein animate__animated animate__pulse"
            style="animation-delay:.6s;">
     </div>
-    <!-- Main About Content -->
-    <div class="mb-6 relative z-10">
-      <p class="text-gray-100 text-lg md:text-xl mb-5 text-center leading-relaxed fadein" style="animation-delay:.4s;">
+    <!-- About Content -->
+    <div class="mb-6 relative z-10 section-fade" id="about-overview">
+      <p class="text-gray-100 text-lg md:text-xl mb-5 text-center leading-relaxed animate__animated animate__fadeIn" style="animation-delay:.4s;">
         Welcome to a smarter way to run healthcare. This <span class="text-fuchsia-300 font-bold">Hospital Management System</span> is built to feel like a real-world front desk: fast, friendly, secure, and always organized.
         <br>
         <span class="text-indigo-200 font-semibold">From patient admissions to doctor schedules, from billing to reporting,</span> everything is just a few clicks away, in a modern and visually engaging interface.
       </p>
-      <div class="flex flex-col md:flex-row items-center gap-6 mb-4 fadein" style="animation-delay:.7s;">
+      <div class="flex flex-col md:flex-row items-center gap-6 mb-4 animate__animated animate__fadeInUp" style="animation-delay:.7s;">
         <div class="flex-1">
           <ul class="list-disc text-gray-200 text-base md:text-lg space-y-2 px-6">
-            <li>Real-time patient & doctor record management</li>
-            <li>Appointment scheduling with instant notifications</li>
-            <li>Seamless, transparent billing workflow</li>
-            <li>Comprehensive dashboard and analytics</li>
-            <li>Enterprise-grade security and scalability</li>
+            <li><i class="fas fa-user-injured text-fuchsia-400 mr-2"></i>Real-time patient & doctor record management</li>
+            <li><i class="fas fa-calendar-check text-indigo-400 mr-2"></i>Appointment scheduling with instant notifications</li>
+            <li><i class="fas fa-file-invoice-dollar text-yellow-400 mr-2"></i>Seamless, transparent billing workflow</li>
+            <li><i class="fas fa-chart-pie text-green-400 mr-2"></i>Comprehensive dashboard and analytics</li>
+            <li><i class="fas fa-lock text-sky-400 mr-2"></i>Enterprise-grade security and scalability</li>
           </ul>
         </div>
         <div class="flex-1 flex flex-col items-center">
-          <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-fuchsia-400 mb-2">
+          <div class="w-20 h-20 rounded-full overflow-hidden shadow-lg border-2 border-fuchsia-400 mb-2 hover:scale-105 transition-transform duration-200">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsRbNptqhM0Xb7rXIlBjuq5nLYyx6Tv7fxWA&s"
                  alt="Hospital Lobby" class="object-cover w-full h-full"/>
           </div>
@@ -128,8 +191,8 @@
         </div>
       </div>
       <div class="section-divider"></div>
-      <!-- About Developer Section -->
-      <div class="flex flex-col items-center mb-4 fadein" style="animation-delay:.8s;">
+      <!-- About Developer -->
+      <div class="flex flex-col items-center mb-4 animate__animated animate__fadeIn" style="animation-delay:.8s;">
         <p class="text-lg text-fuchsia-200 font-semibold text-center mb-1">Meet the Developer</p>
         <p class="text-gray-100 text-center max-w-2xl">
           <span class="font-bold text-fuchsia-300">Laxmikant Sharma</span> is a dedicated software developer specializing in healthcare technology solutions.<br>
@@ -140,7 +203,7 @@
           <span class="inline-block bg-fuchsia-700 text-white rounded-full px-4 py-1 text-xs font-semibold">Version 1.0</span>
         </div>
         <div class="text-center text-gray-400 text-sm mt-3">
-          <p>Contact: <a href="mailto:laxmikant.sharma560@gmail.com" class="text-blue-300 underline">laxmikant.sharma560@gmail.com</a></p>
+          <p>Contact: <a href="mailto:laxmikant.sharma560@gmail.com" class="text-blue-300 underline hover:text-fuchsia-400 transition-colors duration-200">laxmikant.sharma560@gmail.com</a></p>
         </div>
       </div>
     </div>
@@ -148,8 +211,40 @@
       <div class="text-center">
         <p class="text-gray-400 text-xs">© {{ year|default:"2025" }} Laxmikant Sharma. All rights reserved.</p>
       </div>
-      <a href="{% url 'home' %}" class="text-blue-300 hover:underline font-semibold text-center transition-all duration-150 hover:text-fuchsia-400">&larr; Back to Dashboard</a>
+      <a href="{% url 'home' %}" class="btn-cta flex items-center" id="back-to-dashboard-bottom" tabindex="0">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
     </div>
   </div>
+  <script>
+    // Section fade-in on scroll
+    function fadeInOnScroll() {
+      const faders = document.querySelectorAll('.section-fade');
+      faders.forEach(fader => {
+        const rect = fader.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 80) {
+          fader.classList.add('visible');
+        }
+      });
+    }
+    window.addEventListener('scroll', fadeInOnScroll);
+    window.addEventListener('DOMContentLoaded', fadeInOnScroll);
+
+    // CTA button ripple micro-interaction
+    document.querySelectorAll('.btn-cta').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple-cta';
+        ripple.style.width = ripple.style.height = Math.max(btn.offsetWidth, btn.offsetHeight) + 'px';
+        ripple.style.left = (e.offsetX - btn.offsetWidth/2) + 'px';
+        ripple.style.top = (e.offsetY - btn.offsetHeight/2) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 480);
+      });
+      btn.addEventListener('keydown', function(e) {
+        if (e.key === "Enter" || e.key === " ") btn.click();
+      });
+    });
+  </script>
 </body>
 </html>

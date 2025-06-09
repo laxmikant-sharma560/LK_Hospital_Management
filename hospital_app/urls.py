@@ -6,6 +6,7 @@ urlpatterns = [
 
     # Appointments management URLs
     path('appointments/', views.appointments, name='appointments'),  # List all appointments
+    path('view_appointments/', views.view_appointments, name='view_appointments'),  # List all appointments
     path('appointments/add/', views.add_appointment, name='add_appointment'),
     path('appointments/update/<int:appt_id>/', views.update_appointment, name='update_appointment'),
     path('appointments/delete/<int:appt_id>/', views.delete_appointment, name='delete_appointment'),
