@@ -125,7 +125,7 @@
         <select id="patient_id" name="patient_id" required class="form-select w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition">
           <option value="">Select patient</option>
           {% for patient in patients %}
-            <option value="{{ patient.0 }}">{{ patient.1 }}</option>
+            <option value="{{ patient.pk }}">{{ patient.name }}</option>
           {% endfor %}
         </select>
       </div>

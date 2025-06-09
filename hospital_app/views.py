@@ -1,366 +1,252 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-import mysql.connector
-from datetime import datetime
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.db.models import Q, Sum
+from django.http import JsonResponse
+from .models import Patient, Doctor, Appointment, Billing, Department
+from .forms import PatientForm, DoctorForm, AppointmentForm, BillingForm
 
-# Database connection helper
-def get_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="root",
-        database="lk_hospital_db"
-    )
-
-# Home/Dashboard
+# --- DASHBOARD HOME ---
+@login_required
 def home(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT COUNT(*) FROM patients")
-    total_patients = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM doctors")
-    total_doctors = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM appointments")
-    total_appointments = cursor.fetchone()[0]
-    cursor.execute("SELECT IFNULL(SUM(amount), 0) FROM billing")
-    total_billing = cursor.fetchone()[0]
+    context = {
+        'total_patients': Patient.objects.count(),
+        'total_doctors': Doctor.objects.count(),
+        'total_appointments': Appointment.objects.count(),
+        'total_billing': Billing.objects.aggregate(total=Sum('amount'))['total'] or 0,
+        'recent_appointments': Appointment.objects.select_related('patient', 'doctor').order_by('-appointment_date')[:5],
+    }
+    return render(request, 'home.html', context)
 
-    cursor.execute("SELECT patient_name, doctor_name, appointment_date, symptoms FROM appointments ORDER BY appointment_date DESC LIMIT 5")
-    appts = cursor.fetchall()
-    recent_appointments = [
-        {
-            "patient_name": row[0],
-            "doctor_name": row[1],
-            "appointment_date": row[2],
-            "symptoms": row[3],
-        }
-        for row in appts
-    ]
-    cursor.close()
-    db.close()
-    username = request.user.username if request.user.is_authenticated else None
-    return render(request, 'home.html', {
-        'total_patients': total_patients,
-        'total_doctors': total_doctors,
-        'total_appointments': total_appointments,
-        'total_billing': total_billing,
-        'recent_appointments': recent_appointments,
-        'username': username,
-    })
+# --- ADVANCED APPOINTMENTS LIST WITH SEARCH/FILTER/SORT/PAGINATION & AJAX ---
+class AppointmentListView(LoginRequiredMixin, ListView):
+    model = Appointment
+    template_name = 'appointments.html'
+    context_object_name = 'appointments'
+    paginate_by = 10
 
-# All appointments
-def appointments(request):
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM appointments")
-    appointments = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render(request, 'appointments.html', {'appointments': appointments})
+    def get_queryset(self):
+        qs = Appointment.objects.select_related('patient', 'doctor', 'department')
+        q = self.request.GET.get('q', '').strip()
+        doctor_id = self.request.GET.get('doctor')
+        dept_id = self.request.GET.get('department')
+        date = self.request.GET.get('date')
+        sort = self.request.GET.get('sort', '-appointment_date')
 
-def add_appointment(request):
-    if request.method == "POST":
-        name = request.POST['patient_name']
-        doctor = request.POST['doctor_name']
-        date_str = request.POST['appointment_date']
-        symptoms = request.POST['symptoms']
-        try:
-            date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            db = get_db()
-            cursor = db.cursor()
-            cursor.execute(
-                "INSERT INTO appointments (patient_name, doctor_name, appointment_date, symptoms) VALUES (%s, %s, %s, %s)",
-                (name, doctor, date, symptoms)
+        if q:
+            qs = qs.filter(
+                Q(patient__name__icontains=q) |
+                Q(doctor__name__icontains=q) |
+                Q(symptoms__icontains=q)
             )
-            db.commit()
-            cursor.close()
-            db.close()
-            return redirect('appointments')
-        except ValueError:
-            return HttpResponse("❌ Invalid date format. Please use YYYY-MM-DD.")
-    return render(request, 'add_appointment.html')
+        if doctor_id:
+            qs = qs.filter(doctor_id=doctor_id)
+        if dept_id:
+            qs = qs.filter(doctor__department_id=dept_id)
+        if date:
+            qs = qs.filter(appointment_date=date)
+        if sort:
+            qs = qs.order_by(sort)
+        return qs
 
-def update_appointment(request, appt_id):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM appointments WHERE id = %s", (appt_id,))
-    appointment = cursor.fetchone()
-    if not appointment:
-        cursor.close()
-        db.close()
-        return HttpResponse("❌ Appointment not found.")
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            appointments = [
+                {
+                    'id': appt.id,
+                    'patient': appt.patient.name,
+                    'doctor': appt.doctor.name,
+                    'date': appt.appointment_date,
+                    'symptoms': appt.symptoms
+                }
+                for appt in context['appointments']
+            ]
+            return JsonResponse({'appointments': appointments})
+        return super().render_to_response(context, **response_kwargs)
 
-    if request.method == "POST":
-        name = request.POST.get('patient_name') or appointment[1]
-        doctor = request.POST.get('doctor_name') or appointment[2]
-        date_input = request.POST.get('appointment_date')
-        symptoms = request.POST.get('symptoms') or appointment[4]
-        try:
-            date = datetime.strptime(date_input, "%Y-%m-%d").date() if date_input else appointment[3]
-            cursor.execute(
-                "UPDATE appointments SET patient_name=%s, doctor_name=%s, appointment_date=%s, symptoms=%s WHERE id=%s",
-                (name, doctor, date, symptoms, appt_id)
-            )
-            db.commit()
-            cursor.close()
-            db.close()
-            return redirect('appointments')
-        except ValueError:
-            cursor.close()
-            db.close()
-            return HttpResponse("❌ Invalid date format.")
-    cursor.close()
-    db.close()
-    return render(request, 'update_appointment.html', {'appointment': appointment})
+# --- APPOINTMENT CRUD (CBVs) ---
+class AppointmentCreateView(LoginRequiredMixin, CreateView):
+    model = Appointment
+    form_class = AppointmentForm
+    template_name = 'add_appointment.html'
+    success_url = reverse_lazy('appointments')
+    def form_valid(self, form):
+        messages.success(self.request, "Appointment created successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-def delete_appointment(request, appt_id):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM appointments WHERE id = %s", (appt_id,))
-    if cursor.fetchone():
-        cursor.execute("DELETE FROM appointments WHERE id = %s", (appt_id,))
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('appointments')
-    else:
-        cursor.close()
-        db.close()
-        return HttpResponse("❌ Appointment not found.")
+class AppointmentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Appointment
+    form_class = AppointmentForm
+    template_name = 'update_appointment.html'
+    success_url = reverse_lazy('appointments')
+    def form_valid(self, form):
+        messages.success(self.request, "Appointment updated successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-# Patients
-def patients(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM patients")
-    patients_data = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render(request, 'patients.html', {'patients': patients_data})
+class AppointmentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Appointment
+    template_name = 'confirm_delete.html'
+    success_url = reverse_lazy('appointments')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Appointment deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
-def add_patient(request):
-    if request.method == "POST":
-        name = request.POST.get('name')
-        gender = request.POST.get('gender')
-        age = request.POST.get('age')
-        contact = request.POST.get('contact')
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO patients (name, gender, age, contact) VALUES (%s, %s, %s, %s)",
-            (name, gender, age, contact)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('patients')
-    return render(request, 'add_patient.html')
+# --- PATIENT CRUD (CBVs) WITH FILTER/SEARCH ---
+class PatientListView(LoginRequiredMixin, ListView):
+    model = Patient
+    template_name = 'patients.html'
+    context_object_name = 'patients'
+    paginate_by = 10
 
-def update_patient(request, patient_id):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM patients WHERE id = %s", (patient_id,))
-    patient = cursor.fetchone()
-    if not patient:
-        cursor.close()
-        db.close()
-        return HttpResponse("❌ Patient not found.")
+    def get_queryset(self):
+        q = self.request.GET.get('q', '').strip()
+        qs = Patient.objects.all()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(phone__icontains=q) | Q(email__icontains=q))
+        return qs.order_by('name')
 
-    if request.method == "POST":
-        name = request.POST.get('name') or patient[1]
-        gender = request.POST.get('gender') or patient[2]
-        age = request.POST.get('age') or patient[3]
-        contact = request.POST.get('contact') or patient[4]
-        cursor.execute(
-            "UPDATE patients SET name=%s, gender=%s, age=%s, contact=%s WHERE id=%s",
-            (name, gender, age, contact, patient_id)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('patients')
-    cursor.close()
-    db.close()
-    return render(request, 'update_patient.html', {'patient': patient})
+class PatientCreateView(LoginRequiredMixin, CreateView):
+    model = Patient
+    form_class = PatientForm
+    template_name = 'add_patient.html'
+    success_url = reverse_lazy('patients')
+    def form_valid(self, form):
+        messages.success(self.request, "Patient added successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-def delete_patient(request, patient_id):
-    if request.method == "POST":
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM patients WHERE id = %s", (patient_id,))
-        if cursor.fetchone():
-            cursor.execute("DELETE FROM patients WHERE id = %s", (patient_id,))
-            db.commit()
-            cursor.close()
-            db.close()
-            return redirect('patients')
-        else:
-            cursor.close()
-            db.close()
-            return HttpResponse("❌ Patient not found.")
-    else:
-        return HttpResponse("❌ Invalid request method.")
+class PatientUpdateView(LoginRequiredMixin, UpdateView):
+    model = Patient
+    form_class = PatientForm
+    template_name = 'update_patient.html'
+    success_url = reverse_lazy('patients')
+    def form_valid(self, form):
+        messages.success(self.request, "Patient updated successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-# Doctors
-def doctors(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM doctors")
-    doctors_list = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render(request, 'doctors.html', {'doctors': doctors_list})
+class PatientDeleteView(LoginRequiredMixin, DeleteView):
+    model = Patient
+    template_name = 'confirm_delete.html'
+    success_url = reverse_lazy('patients')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Patient deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
-def add_doctor(request):
-    if request.method == "POST":
-        name = request.POST.get('name')
-        specialty = request.POST.get('specialty')
-        contact = request.POST.get('contact')
-        gender = request.POST.get('gender')
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO doctors (name, specialty, contact, gender) VALUES (%s, %s, %s, %s)",
-            (name, specialty, contact, gender)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('doctors')
-    return render(request, 'add_doctor.html')
+# --- DOCTOR CRUD (CBVs) WITH ADVANCED FILTER ---
+class DoctorListView(LoginRequiredMixin, ListView):
+    model = Doctor
+    template_name = 'doctors.html'
+    context_object_name = 'doctors'
+    paginate_by = 10
 
-def update_doctor(request, doctor_id):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM doctors WHERE id = %s", (doctor_id,))
-    doctor = cursor.fetchone()
-    if not doctor:
-        cursor.close()
-        db.close()
-        return HttpResponse("❌ Doctor not found.")
+    def get_queryset(self):
+        q = self.request.GET.get('q', '').strip()
+        dept = self.request.GET.get('department')
+        qs = Doctor.objects.all()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(phone__icontains=q) | Q(email__icontains=q))
+        if dept:
+            qs = qs.filter(department_id=dept)
+        return qs.order_by('name')
 
-    if request.method == "POST":
-        name = request.POST.get('name') or doctor[1]
-        specialty = request.POST.get('specialty') or doctor[2]
-        gender = request.POST.get('gender') or doctor[3]
-        contact = request.POST.get('contact') or doctor[4]
-        email = request.POST.get('email') or doctor[5]
-        cursor.execute(
-            "UPDATE doctors SET name=%s, specialty=%s, gender=%s, contact=%s, email=%s WHERE id=%s",
-            (name, specialty, gender, contact, email, doctor_id)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('doctors')
-    cursor.close()
-    db.close()
-    return render(request, 'update_doctor.html', {'doctor': doctor})
+class DoctorCreateView(LoginRequiredMixin, CreateView):
+    model = Doctor
+    form_class = DoctorForm
+    template_name = 'add_doctor.html'
+    success_url = reverse_lazy('doctors')
+    def form_valid(self, form):
+        messages.success(self.request, "Doctor added successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-def delete_doctor(request, doctor_id):
-    if request.method == "POST":
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM doctors WHERE id = %s", (doctor_id,))
-        if cursor.fetchone():
-            cursor.execute("DELETE FROM doctors WHERE id = %s", (doctor_id,))
-            db.commit()
-            cursor.close()
-            db.close()
-            return redirect('doctors')
-        else:
-            cursor.close()
-            db.close()
-            return HttpResponse("❌ Doctor not found.")
-    else:
-        return HttpResponse("❌ Invalid request method.")
+class DoctorUpdateView(LoginRequiredMixin, UpdateView):
+    model = Doctor
+    form_class = DoctorForm
+    template_name = 'update_doctor.html'
+    success_url = reverse_lazy('doctors')
+    def form_valid(self, form):
+        messages.success(self.request, "Doctor updated successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
-# Billing
-def billing(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("""
-        SELECT b.id, p.name, b.amount, b.description, b.date, b.status
-        FROM billing b
-        LEFT JOIN patients p ON b.patient_id = p.id
-    """)
-    bills = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render(request, 'billing.html', {'bills': bills})
+class DoctorDeleteView(LoginRequiredMixin, DeleteView):
+    model = Doctor
+    template_name = 'confirm_delete.html'
+    success_url = reverse_lazy('doctors')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Doctor deleted successfully.")
+        return super().delete(request, *args, **kwargs)
 
-def add_bill(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT id, name FROM patients")
-    patients = cursor.fetchall()
-    if request.method == "POST":
-        patient_id = request.POST.get('patient_id')
-        amount = request.POST.get('amount')
-        description = request.POST.get('description')
-        date = request.POST.get('date')
-        status = request.POST.get('status', 'unpaid')
-        cursor.execute(
-            "INSERT INTO billing (patient_id, amount, description, date, status) VALUES (%s, %s, %s, %s, %s)",
-            (patient_id, amount, description, date, status)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('billing')
-    cursor.close()
-    db.close()
-    return render(request, 'add_bill.html', {'patients': patients})
+# --- BILLING CRUD (CBVs) ---
+class BillingListView(LoginRequiredMixin, ListView):
+    model = Billing
+    template_name = 'billing.html'
+    context_object_name = 'bills'
+    paginate_by = 10
+    def get_queryset(self):
+        q = self.request.GET.get('q', '').strip()
+        qs = Billing.objects.select_related('patient', 'appointment')
+        if q:
+            qs = qs.filter(Q(patient__name__icontains=q) | Q(description__icontains=q))
+        return qs.order_by('-date')
 
-def update_bill(request, bill_id):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM billing WHERE id = %s", (bill_id,))
-    bill = cursor.fetchone()
-    cursor.execute("SELECT id, name FROM patients")
-    patients = cursor.fetchall()
-    if not bill:
-        cursor.close()
-        db.close()
-        return HttpResponse("❌ Bill not found.")
-    if request.method == "POST":
-        patient_id = request.POST.get('patient_id') or bill[1]
-        amount = request.POST.get('amount') or bill[2]
-        description = request.POST.get('description') or bill[3]
-        date = request.POST.get('date') or bill[4]
-        status = request.POST.get('status') or bill[5]
-        cursor.execute(
-            """UPDATE billing SET patient_id=%s, amount=%s, description=%s, date=%s, status=%s WHERE id=%s""",
-            (patient_id, amount, description, date, status, bill_id)
-        )
-        db.commit()
-        cursor.close()
-        db.close()
-        return redirect('billing')
-    cursor.close()
-    db.close()
-    return render(request, 'update_bill.html', {'bill': bill, 'patients': patients})
+class BillingCreateView(LoginRequiredMixin, CreateView):
+    model = Billing
+    form_class = BillingForm
+    template_name = 'add_bill.html'
+    success_url = reverse_lazy('billing')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['patients'] = Patient.objects.all()
+        return context
 
-def delete_bill(request, bill_id):
-    if request.method == "POST":
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM billing WHERE id = %s", (bill_id,))
-        if cursor.fetchone():
-            cursor.execute("DELETE FROM billing WHERE id = %s", (bill_id,))
-            db.commit()
-            cursor.close()
-            db.close()
-            return redirect('billing')
-        else:
-            cursor.close()
-            db.close()
-            return HttpResponse("❌ Bill not found.")
-    else:
-        return HttpResponse("❌ Invalid request method.")
+class BillingUpdateView(LoginRequiredMixin, UpdateView):
+    model = Billing
+    form_class = BillingForm
+    template_name = 'update_bill.html'
+    success_url = reverse_lazy('billing')
+    def form_valid(self, form):
+        messages.success(self.request, "Bill updated successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
+class BillingDeleteView(LoginRequiredMixin, DeleteView):
+    model = Billing
+    template_name = 'confirm_delete.html'
+    success_url = reverse_lazy('billing')
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Bill deleted successfully.")
+        return super().delete(request, *args, **kwargs)
+
+# --- DEPARTMENT LIST (FILTER) ---
+class DepartmentListView(LoginRequiredMixin, ListView):
+    model = Department
+    template_name = 'departments.html'
+    context_object_name = 'departments'
+    paginate_by = 10
+
+# --- SETTINGS, ABOUT, CONTACT ---
+@login_required
 def settings_view(request):
     return render(request, 'settings.html')
 
@@ -370,9 +256,14 @@ def about(request):
 def contact(request):
     success = False
     if request.method == 'POST':
-        # You can handle saving or emailing the contact message here if needed
+        # Save or email contact message here if needed
         success = True
+        messages.success(request, "Thank you for contacting us! We'll get back to you soon.")
     return render(request, 'contact.html', {'success': success})
+
+# --- AUTH USER REGISTRATION & LOGIN ---
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.models import User
 
 def register(request):
     error = None
@@ -390,40 +281,50 @@ def register(request):
         else:
             user = User.objects.create_user(username=username, email=email, password=password1)
             user.save()
-            # Auto-login after registration
             user = authenticate(request, username=username, password=password1)
             if user is not None:
                 auth_login(request, user)
+                messages.success(request, "Registration successful! Welcome.")
                 return redirect('home')
-    return render(request, 'registration.html', {'error': error})
+    if error:
+        messages.error(request, error)
+    return render(request, 'registration.html')
 
 def login_view(request):
-    error = None
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             auth_login(request, user)
+            messages.success(request, "Login successful. Welcome.")
             return redirect('home')
         else:
-            error = "Invalid username or password."
-    return render(request, 'login.html', {'error': error})
+            messages.error(request, "Invalid username or password.")
+    return render(request, 'login.html')
 
 def logout_view(request):
     auth_logout(request)
+    messages.success(request, "You have been logged out.")
     return redirect('login')
 
-def view_appointments(request):
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("""
-        SELECT a.id, p.name, d.name, a.appointment_date, a.symptoms
-        FROM appointments a
-        LEFT JOIN patients p ON a.patient_id = p.id
-        LEFT JOIN doctors d ON a.doctor_id = d.id
-    """)
-    appointments = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render(request, 'view_appointments.html', {'appointments': appointments})
+
+@login_required
+def add_bill(request):
+    patients = Patient.objects.all()  # This must be a queryset, not a list of tuples!
+    if request.method == "POST":
+        patient_id = request.POST.get('patient_id')
+        amount = request.POST.get('amount')
+        date = request.POST.get('date')
+        description = request.POST.get('description')
+        status = request.POST.get('status')
+        # Save the bill
+        Billing.objects.create(
+            patient_id=patient_id,
+            amount=amount,
+            date=date,
+            description=description,
+            status=status,
+        )
+        return redirect('billing')
+    return render(request, 'add_bill.html', {'patients': patients})

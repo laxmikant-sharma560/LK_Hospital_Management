@@ -1,40 +1,53 @@
 from django.urls import path
-from . import views
+from .views import (
+    home, about, contact, settings_view,
+    AppointmentListView, AppointmentCreateView, AppointmentUpdateView, AppointmentDeleteView,
+    PatientListView, PatientCreateView, PatientUpdateView, PatientDeleteView,
+    DoctorListView, DoctorCreateView, DoctorUpdateView, DoctorDeleteView,
+    BillingListView, BillingCreateView, BillingUpdateView, BillingDeleteView,
+    DepartmentListView,
+    register, login_view, logout_view,
+)
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    # Dashboard/Home
+    path('', home, name='home'),
 
-    # Appointments management URLs
-    path('appointments/', views.appointments, name='appointments'),  # List all appointments
-    path('view_appointments/', views.view_appointments, name='view_appointments'),  # List all appointments
-    path('appointments/add/', views.add_appointment, name='add_appointment'),
-    path('appointments/update/<int:appt_id>/', views.update_appointment, name='update_appointment'),
-    path('appointments/delete/<int:appt_id>/', views.delete_appointment, name='delete_appointment'),
+    # Appointments (CBV)
+    path('appointments/', AppointmentListView.as_view(), name='appointments'),
+    path('appointments/add/', AppointmentCreateView.as_view(), name='add_appointment'),
+    path('appointments/<int:pk>/edit/', AppointmentUpdateView.as_view(), name='update_appointment'),
+    path('appointments/<int:pk>/delete/', AppointmentDeleteView.as_view(), name='delete_appointment'),
 
-    # Patients management URLs
-    path('patients/', views.patients, name='patients'),
-    path('patients/add/', views.add_patient, name='add_patient'),
-    path('patients/update/<int:patient_id>/', views.update_patient, name='update_patient'),
-    path('patients/delete/<int:patient_id>/', views.delete_patient, name='delete_patient'),
+    # Patients (CBV)
+    path('patients/', PatientListView.as_view(), name='patients'),
+    path('patients/add/', PatientCreateView.as_view(), name='add_patient'),
+    path('patients/<int:pk>/edit/', PatientUpdateView.as_view(), name='update_patient'),
+    path('patients/<int:pk>/delete/', PatientDeleteView.as_view(), name='delete_patient'),
 
-    # Doctors management URLs
-    path('doctors/', views.doctors, name='doctors'),
-    path('doctors/add/', views.add_doctor, name='add_doctor'),
-    path('doctors/update/<int:doctor_id>/', views.update_doctor, name='update_doctor'),
-    path('doctors/delete/<int:doctor_id>/', views.delete_doctor, name='delete_doctor'),
+    # Doctors (CBV)
+    path('doctors/', DoctorListView.as_view(), name='doctors'),
+    path('doctors/add/', DoctorCreateView.as_view(), name='add_doctor'),
+    path('doctors/<int:pk>/edit/', DoctorUpdateView.as_view(), name='update_doctor'),
+    path('doctors/<int:pk>/delete/', DoctorDeleteView.as_view(), name='delete_doctor'),
 
-    # Billing management URLs
-    path('billing/', views.billing, name='billing'),
-    path('billing/add/', views.add_bill, name='add_bill'),
-    path('billing/update/<int:bill_id>/', views.update_bill, name='update_bill'),
-    path('billing/delete/<int:bill_id>/', views.delete_bill, name='delete_bill'),
+    # Billing (CBV)
+    path('billing/', BillingListView.as_view(), name='billing'),
+    path('billing/add/', BillingCreateView.as_view(), name='add_bill'),
+    path('billing/<int:pk>/edit/', BillingUpdateView.as_view(), name='update_bill'),
+    path('billing/<int:pk>/delete/', BillingDeleteView.as_view(), name='delete_bill'),
 
-    # Settings
-    path('settings/', views.settings_view, name='settings'),
+    # Departments (CBV, list only)
+    path('departments/', DepartmentListView.as_view(), name='departments'),
 
-    path('about/', views.about, name='about'),
-    path('contact/', views.contact, name='contact'),
-    path('register/', views.register, name='register'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
+    # Info & settings (function views)
+    path('settings/', settings_view, name='settings'),
+    path('about/', about, name='about'),
+    path('contact/', contact, name='contact'),
+
+    # Auth
+    path('register/', register, name='register'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    
 ]
