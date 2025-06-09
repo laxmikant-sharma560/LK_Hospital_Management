@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patients Management | Hospital Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .mix-sidebar {
+      background: linear-gradient(160deg,#818cf8 0%,#f472b6 40%,#facc15 70%,#34d399 100%);
+    }
+    .sidebar-btn {
+      color: #fff;
+      border-radius: 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(.4,0,.2,1);
+      background: linear-gradient(120deg, #818cf8 0%, #f472b6 40%, #34d399 100%);
+      box-shadow: 0 2px 12px 0 rgba(129,140,248,0.12);
+    }
+    .sidebar-btn:hover, .sidebar-btn.active {
+      background: linear-gradient(90deg, #f472b6 10%, #818cf8 70%, #facc15 100%);
+      color: #fff;
+      scale: 1.05;
+      box-shadow: 0 4px 24px 0 rgba(236,72,153,0.15);
+    }
+    .action-btn {
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      transform: scale(1.07) translateY(-2px);
+      box-shadow: 0 6px 18px 0 rgba(236,72,153,0.13);
+      filter: brightness(1.08);
+    }
+    .fadein { animation: fadein 1s ease;}
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(30px);}
+      to { opacity: 1; transform: none;}
+    }
+    /* Table row hover and click effect */
+    .row-hover {
+      transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+      cursor: pointer;
+    }
+    .row-hover:hover {
+      background: linear-gradient(90deg,rgba(236,72,153,0.16) 0,rgba(129,140,248,0.10) 100%);
+      box-shadow: 0 8px 32px 0 rgba(139,92,246,.13);
+      transform: translateY(-2px) scale(1.01);
+    }
+    .row-active {
+      background: linear-gradient(90deg,rgba(129,140,248,0.16) 0,rgba(236,72,153,0.10) 100%);
+      box-shadow: 0 0 0 2px #818cf8, 0 6px 18px 0 rgba(129,140,248,.07);
+      transform: translateY(-2px) scale(1.01);
+    }
+    /* Improved Back Button */
+    .back-btn {
+      background: linear-gradient(90deg,#818cf8 0,#f472b6 100%);
+      color: #fff;
+      border-radius: 2rem;
+      font-weight: 600;
+      padding: 0.7rem 2rem;
+      box-shadow: 0 2px 16px 0 rgba(129,140,248,0.09);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.18s cubic-bezier(.4,0,.2,1);
+      position: relative;
+      overflow: hidden;
+      border: none;
+    }
+    .back-btn:hover, .back-btn:focus {
+      background: linear-gradient(90deg,#f472b6 0,#34d399 100%);
+      color: #fff;
+      box-shadow: 0 6px 24px 0 rgba(236,72,153,0.22);
+      transform: scale(1.06) translateY(-2px);
+      outline: none;
+    }
+    .back-btn:active {
+      filter: brightness(0.98);
+      box-shadow: 0 2px 8px 0 rgba(129,140,248,0.13);
+      transform: scale(0.98);
+    }
+  </style>
+  <script>
+    // Optional: row click highlighting for better UX
+    document.addEventListener("DOMContentLoaded", () => {
+      let activeRow = null;
+      document.querySelectorAll(".row-hover").forEach(row => {
+        row.addEventListener("click", function() {
+          if(activeRow) activeRow.classList.remove("row-active");
+          this.classList.add("row-active");
+          activeRow = this;
+        });
+      });
+    });
+  </script>
+</head>
+<body class="min-h-screen bg-gradient-to-bl from-fuchsia-800 via-gray-900 to-indigo-800 flex">
+  <!-- Sidebar with Mix Colors -->
+  <aside class="mix-sidebar w-20 md:w-64 flex flex-col items-center md:items-stretch z-10 p-2 md:p-6 pt-6 pb-8 shadow-xl min-h-screen">
+    <div class="flex flex-col items-center mb-8">
+      <img src="https://placehold.co/60x60?text=🏥" class="w-14 h-14 rounded-full border-4 border-white shadow-lg mb-2" alt="Hospital Logo" />
+      <h1 class="hidden md:block text-2xl font-bold drop-shadow text-white">LK Hospital</h1>
+    </div>
+    <nav class="flex flex-col gap-3 w-full">
+      <a href="{% url 'home' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">🏠</span>
+        <span class="hidden md:inline">Dashboard</span>
+      </a>
+      <a href="{% url 'patients' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition active flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">🧑‍🤝‍🧑</span>
+        <span class="hidden md:inline">Patients</span>
+      </a>
+      <a href="{% url 'doctors' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">👨‍⚕️</span>
+        <span class="hidden md:inline">Doctors</span>
+      </a>
+      <a href="{% url 'appointments' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">📅</span>
+        <span class="hidden md:inline">Appointments</span>
+      </a>
+      <a href="{% url 'billing' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">💳</span>
+        <span class="hidden md:inline">Billing</span>
+      </a>
+      <a href="{% url 'settings' %}" class="sidebar-btn px-3 py-3 md:px-4 text-base md:text-lg transition flex items-center gap-3 justify-center md:justify-start">
+        <span class="text-xl">⚙️</span>
+        <span class="hidden md:inline">Settings</span>
+      </a>
+    </nav>
+  </aside>
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col py-10 px-2 md:px-6 bg-gradient-to-tr from-slate-900 via-gray-900 to-indigo-900 min-h-screen fadein">
+    <!-- Header Section -->
+    <section class="w-full max-w-5xl mx-auto mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-fuchsia-500/20 rounded-full p-3 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1m-4 6h4M9 20H4v-2a4 4 0 014-4h1m0-4v-1a4 4 0 014-4h0a4 4 0 014 4v1m-8 0h8"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-3xl font-bold text-white">Patients Management</h2>
+          <p class="text-gray-300 mt-1 text-sm">Manage, update and view all patients in the hospital system.</p>
+        </div>
+      </div>
+      <a href="{% url 'add_patient' %}" class="bg-gradient-to-r from-fuchsia-500 via-pink-400 to-indigo-400 hover:from-fuchsia-600 hover:to-indigo-500 text-white px-6 py-2 rounded-xl font-bold shadow-md transition action-btn flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+        Add Patient
+      </a>
+    </section>
+    <!-- Card Table Section -->
+    <section class="w-full max-w-5xl mx-auto">
+      <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl overflow-x-auto p-4 md:p-8">
+        <table class="min-w-full text-left text-white table-fixed">
+          <thead>
+            <tr>
+              <th class="py-3 px-4 w-12">ID</th>
+              <th class="py-3 px-4 w-1/4">Name</th>
+              <th class="py-3 px-4 w-1/6">Gender</th>
+              <th class="py-3 px-4 w-1/6">Age</th>
+              <th class="py-3 px-4 w-1/4">Contact</th>
+              <th class="py-3 px-4 w-40">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for patient in patients %}
+            <tr class="row-hover rounded-xl">
+              <td class="py-2 px-4 font-bold text-fuchsia-300">{{ patient.0 }}</td>
+              <td class="py-2 px-4 flex items-center gap-3">
+                <span class="inline-block w-8 h-8 rounded-full bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-fuchsia-700 text-white flex items-center justify-center font-semibold shadow-inner">
+                  {{ patient.1|slice:":1"|upper }}
+                </span>
+                <span class="truncate">{{ patient.1 }}</span>
+              </td>
+              <td class="py-2 px-4">
+                <span class="inline-block px-3 py-1 rounded-full font-medium bg-fuchsia-700/30 text-fuchsia-100">
+                  {{ patient.2 }}
+                </span>
+              </td>
+              <td class="py-2 px-4">
+                <span class="bg-indigo-800/40 px-2 py-1 rounded text-indigo-100 font-semibold">{{ patient.3 }}</span>
+              </td>
+              <td class="py-2 px-4 truncate">{{ patient.4 }}</td>
+              <td class="py-2 px-4 flex gap-2">
+                <a href="{% url 'update_patient' patient.0 %}" class="action-btn bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-600 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition">Edit</a>
+                <form method="post" action="{% url 'delete_patient' patient.0 %}" onsubmit="return confirm('Are you sure you want to delete this patient?');">
+                  {% csrf_token %}
+                  <button type="submit" class="action-btn bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:from-pink-700 hover:to-fuchsia-600 text-white px-3 py-1 rounded-md font-medium shadow transition">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-gray-300 py-8">No patients found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-10 flex justify-center">
+        <a href="{% url 'home' %}" class="back-btn group">
+          <svg class="w-5 h-5 mr-2 -ml-1 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+          Back to Dashboard
+        </a>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Prevent form submit from unselecting row highlight (optional improvement for demo)
+    document.querySelectorAll("form").forEach(form => {
+      form.addEventListener("click", e => e.stopPropagation());
+    });
+  </script>
+</body>
+</html>

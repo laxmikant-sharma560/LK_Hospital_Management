@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Patient | Hospital Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-card {
+      background: linear-gradient(115deg,rgba(236,72,153,.12) 0,rgba(99,102,241,0.10) 100%);
+      box-shadow: 0 8px 32px 0 rgba(139,92,246,.13);
+      border: 1.5px solid rgba(236,72,153,0.09);
+    }
+    .form-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #f472b6;
+      border-color: #f472b6;
+      background: rgba(236,72,153,0.08);
+    }
+    .form-select:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #818cf8;
+      border-color: #818cf8;
+      background: rgba(129,140,248,0.08);
+    }
+    .submit-btn {
+      background: linear-gradient(90deg,#f472b6 0,#818cf8 100%);
+    }
+    .submit-btn:hover {
+      background: linear-gradient(90deg,#818cf8 0,#f472b6 100%);
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 24px 0 rgba(236,72,153,0.21);
+    }
+    .cancel-btn {
+      background: linear-gradient(90deg,#334155 0,#818cf8 100%);
+    }
+    .cancel-btn:hover {
+      background: linear-gradient(90deg,#818cf8 0,#334155 100%);
+      transform: translateY(-2px) scale(1.03);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-fuchsia-900 via-gray-900 to-indigo-800 flex items-center justify-center">
+  <div class="gradient-card rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4">
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-fuchsia-700 flex items-center justify-center mb-3 shadow-lg">
+        <svg class="w-8 h-8 text-white opacity-90" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+          <path d="M12 4v16m8-8H4"/>
+        </svg>
+      </div>
+      <h2 class="text-3xl font-bold text-white text-center tracking-tight">Add New Patient</h2>
+      <p class="text-gray-300 mt-1 text-center text-sm">Fill the form below to register a new patient in the hospital system.</p>
+    </div>
+    <form method="POST" autocomplete="off" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block text-white mb-1 font-medium" for="name">Name</label>
+        <input required type="text" id="name" name="name" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Enter name">
+      </div>
+      <div>
+        <label class="block text-white mb-1 font-medium" for="gender">Gender</label>
+        <select id="gender" name="gender" required class="form-select w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition">
+          <option value="">Select gender</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-white mb-1 font-medium" for="age">Age</label>
+          <input required type="number" id="age" name="age" min="0" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Enter age">
+        </div>
+        <div>
+          <label class="block text-white mb-1 font-medium" for="contact">Contact</label>
+          <input required type="text" id="contact" name="contact" class="form-input w-full p-2 rounded-lg bg-white/20 text-white font-semibold transition" placeholder="Enter contact number">
+        </div>
+      </div>
+      <div class="flex gap-3 justify-center mt-6">
+        <button type="submit" class="submit-btn text-white px-8 py-2 rounded-xl font-semibold shadow transition">Add Patient</button>
+        <a href="{% url 'patients' %}" class="cancel-btn px-8 py-2 rounded-xl text-white font-semibold shadow transition text-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

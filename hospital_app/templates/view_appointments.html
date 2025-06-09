@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Appointments</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <div class="container mx-auto p-8">
+    <div class="flex justify-between mb-6">
+      <h1 class="text-3xl font-bold">Appointments</h1>
+      <a href="{% url 'add_appointment' %}" class="bg-fuchsia-600 hover:bg-fuchsia-700 px-4 py-2 rounded">+ Add</a>
+    </div>
+    <table class="min-w-full bg-gray-800 rounded shadow overflow-hidden">
+      <thead>
+        <tr>
+          <th class="py-2 px-4">ID</th>
+          <th class="py-2 px-4">Patient</th>
+          <th class="py-2 px-4">Doctor</th>
+          <th class="py-2 px-4">Date</th>
+          <th class="py-2 px-4">Symptoms</th>
+          <th class="py-2 px-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appointment in appointments %}
+        <tr class="border-b border-gray-700 hover:bg-gray-700">
+          <td class="py-2 px-4">{{ appointment.0 }}</td>
+          <td class="py-2 px-4">{{ appointment.1 }}</td>
+          <td class="py-2 px-4">{{ appointment.2 }}</td>
+          <td class="py-2 px-4">{{ appointment.3 }}</td>
+          <td class="py-2 px-4">{{ appointment.4|truncatechars:30 }}</td>
+          <td class="py-2 px-4 flex gap-2">
+            <a href="{% url 'update_appointment' appointment.0 %}" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded">Edit</a>
+            <form method="post" action="{% url 'delete_appointment' appointment.0 %}" onsubmit="return confirm('Delete this appointment?');">
+              {% csrf_token %}
+              <button type="submit" class="bg-pink-600 hover:bg-pink-700 px-3 py-1 rounded">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="py-8 text-center text-gray-400">No appointments found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="mt-4">
+      <a href="{% url 'home' %}" class="text-blue-300 hover:underline">&larr; Back to Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

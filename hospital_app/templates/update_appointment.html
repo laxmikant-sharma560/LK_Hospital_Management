@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Update Appointment | Hospital Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-900 via-gray-900 to-fuchsia-800 flex items-center justify-center">
+  <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4">
+    <h2 class="text-3xl font-bold text-white mb-6 text-center">Update Appointment</h2>
+    <form method="POST" autocomplete="off" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <label class="block text-white mb-1" for="patient_name">Patient Name</label>
+        <input type="text" id="patient_name" name="patient_name" value="{{ appointment.1 }}" class="w-full p-2 rounded bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 transition" placeholder="Enter patient name">
+      </div>
+      <div>
+        <label class="block text-white mb-1" for="doctor_name">Doctor Name</label>
+        <input type="text" id="doctor_name" name="doctor_name" value="{{ appointment.2 }}" class="w-full p-2 rounded bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" placeholder="Enter doctor name">
+      </div>
+      <div>
+        <label class="block text-white mb-1" for="appointment_date">Appointment Date</label>
+        <input type="date" id="appointment_date" name="appointment_date" value="{{ appointment.3|date:'Y-m-d' }}" class="w-full p-2 rounded bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-400 transition">
+      </div>
+      <div>
+        <label class="block text-white mb-1" for="symptoms">Symptoms</label>
+        <textarea id="symptoms" name="symptoms" class="w-full p-2 rounded bg-white/20 text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" placeholder="Describe symptoms">{{ appointment.4 }}</textarea>
+      </div>
+      <div class="flex gap-3 justify-center">
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl font-semibold shadow transition">Update</button>
+        <a href="{% url 'view_appointments' %}" class="bg-gray-700 hover:bg-gray-800 px-6 py-2 rounded-xl text-white font-semibold shadow transition">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
