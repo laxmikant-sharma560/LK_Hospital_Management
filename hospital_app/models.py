@@ -155,7 +155,7 @@ class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="appointments")
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True, related_name="appointments")
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    appointment_date = models.DateField()
+    appointment_date = models.DateField(blank=True,null=True)
     appointment_time = models.TimeField(null=True, blank=True)
     symptoms = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=APPOINTMENT_STATUS, default='scheduled')

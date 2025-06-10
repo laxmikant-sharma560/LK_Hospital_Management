@@ -71,7 +71,7 @@ class AppointmentListView(LoginRequiredMixin, ListView):
 class AppointmentCreateView(LoginRequiredMixin, CreateView):
     model = Appointment
     form_class = AppointmentForm
-    template_name = 'add_appointment.html'
+    template_name = 'add_app.html'
     success_url = reverse_lazy('appointments')
     def form_valid(self, form):
         messages.success(self.request, "Appointment created successfully.")
@@ -217,6 +217,12 @@ class BillingCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['patients'] = Patient.objects.all()
         return context
+    def form_valid(self, form):
+        messages.success(self.request, "Bill added successfully.")
+        return super().form_valid(form)
+    def form_invalid(self, form):
+        messages.error(self.request, "Error: " + str(form.errors))
+        return super().form_invalid(form)
 
 class BillingUpdateView(LoginRequiredMixin, UpdateView):
     model = Billing
@@ -308,23 +314,23 @@ def logout_view(request):
     messages.success(request, "You have been logged out.")
     return redirect('login')
 
-
+# --- BILLING FORM (Function-based View, Optional) ---
 @login_required
 def add_bill(request):
-    patients = Patient.objects.all()  # This must be a queryset, not a list of tuples!
+    """
+    Show and process the add bill form. Uses BillingForm for validation.
+    """
     if request.method == "POST":
-        patient_id = request.POST.get('patient_id')
-        amount = request.POST.get('amount')
-        date = request.POST.get('date')
-        description = request.POST.get('description')
-        status = request.POST.get('status')
-        # Save the bill
-        Billing.objects.create(
-            patient_id=patient_id,
-            amount=amount,
-            date=date,
-            description=description,
-            status=status,
-        )
-        return redirect('billing')
-    return render(request, 'add_bill.html', {'patients': patients})
+        form = BillingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Bill added successfully.")
+            return redirect('billing')
+        else:
+            messages.error(request, "Error: " + str(form.errors))
+    else:
+        form = BillingForm()
+    patients = Patient.objects.all()
+    return render(request, 'add_bill.html', {'form': form, 'patients': patients})
+
+
